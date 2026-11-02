@@ -16,7 +16,7 @@ Table II         Azure median LII                         27.222       27.2 PASS
 Table II         GCP median LII                           28.629       28.6 PASS
 Table II         overall mean LII                         33.471       33.5 PASS
 Sec V-A          configs above LII 40 (%)                 27.179       27.2 PASS
-Sec V-A          size vs LII Spearman rho                  0.128       0.13 PASS
+Sec V-A          size vs LII Spearman rho                  0.119       0.13 FAIL
 Sec V-B          IAM share of lock-in mass (%)            21.078       21.1 PASS
 Sec V-B          IAM share of resources (%)               16.614       16.6 PASS
 Sec V-B          IAM present in configs (%)               38.552       38.6 PASS
@@ -36,4 +36,4 @@ Sec VI           egress 10 TB AWS ($)                    891.000        891 PASS
 Sec VI           egress 10 TB Azure ($)                  842.000        842 PASS
 Sec VI           egress 10 TB GCP ($)                   1110.000       1110 PASS
 
-36/36 checks passed
+35/36 checks passed

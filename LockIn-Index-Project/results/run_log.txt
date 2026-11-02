@@ -1,7 +1,7 @@
 configs 677
 resources 8908 distinct types 844
 unclassified share 0.012909744050291872
-top unclassified [('google_compute_backend_bucket', 5), ('aws_pipes_pipe', 4), ('google_compute_reservation', 4), ('azurerm_recovery_services_vault', 3), ('google_compute_target_tcp_proxy', 3), ('google_compute_target_ssl_proxy', 3), ('google_compute_region_disk', 2), ('aws_directory_service_directory', 2), ('aws_odb_cloud_exadata_infrastructure', 2), ('aws_ram_resource_share', 2), ('aws_ram_resource_association', 2), ('aws_ram_principal_association', 2), ('azurerm_automation_schedule', 2), ('azurerm_site_recovery_protection_container', 2), ('azurerm_service_fabric_cluster', 2), ('azurerm_hdinsight_hadoop_cluster', 2), ('aws_service_discovery_http_namespace', 2), ('google_compute_packet_mirroring', 2), ('google_compute_autoscaler', 2), ('google_compute_per_instance_config', 2), ('google_apikeys_key', 1), ('google_chronicle_reference_list', 1), ('google_chronicle_rule', 1), ('google_chronicle_rule_deployment', 1), ('google_chronicle_data_access_label', 1)]
+top unclassified [('google_compute_backend_bucket', 5), ('aws_pipes_pipe', 4), ('google_compute_reservation', 4), ('azurerm_recovery_services_vault', 3), ('google_compute_target_ssl_proxy', 3), ('google_compute_target_tcp_proxy', 3), ('google_compute_region_disk', 2), ('aws_ram_resource_share', 2), ('aws_ram_resource_association', 2), ('aws_ram_principal_association', 2), ('aws_directory_service_directory', 2), ('aws_odb_cloud_exadata_infrastructure', 2), ('azurerm_automation_schedule', 2), ('azurerm_site_recovery_protection_container', 2), ('azurerm_hdinsight_hadoop_cluster', 2), ('azurerm_service_fabric_cluster', 2), ('aws_service_discovery_http_namespace', 2), ('google_compute_packet_mirroring', 2), ('google_compute_per_instance_config', 2), ('google_compute_autoscaler', 2), ('google_apikeys_key', 1), ('google_chronicle_reference_list', 1), ('google_chronicle_rule', 1), ('google_chronicle_rule_deployment', 1), ('google_chronicle_data_access_label', 1)]
 {
  "Azure": {
   "n": 248,
@@ -80,9 +80,9 @@ Kubernetes-native        res=   22 resshare=0.002 mass=0.000 prev=0.01 lii=6.0
 }
 {
  "N": 1000,
- "rho_median": 0.9144648609999994,
- "rho_p05": 0.7057985241945632,
- "rho_min": 0.24698485977172127,
+ "rho_median": 0.9144514025380339,
+ "rho_p05": 0.705835921702381,
+ "rho_min": 0.2462872628265137,
  "cat_rho_median": 0.9662337662337662,
  "cat_rho_p05": 0.9025974025974026,
  "k8s_lower_share": 0.997
