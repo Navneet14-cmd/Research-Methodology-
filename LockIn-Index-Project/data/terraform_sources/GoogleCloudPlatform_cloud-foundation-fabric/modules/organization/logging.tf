@@ -1,0 +1,208 @@
+/**
+ * Copyright 2025 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+# tfdoc:file:description Log sinks and data access logs.
+
+locals {
+  logging_sinks = {
+    for k, v in var.logging_sinks :
+    # expand destination contexts
+    k => merge(v,
+      v.type != "bigquery" ? {} : {
+        destination = lookup(
+          local.ctx.bigquery_datasets, v.destination, v.destination
+        )
+      },
+      v.type != "logging" ? {} : {
+        destination = lookup(
+          local.ctx.log_buckets, v.destination, v.destination
+        )
+      },
+      v.type != "project" ? {} : {
+        api         = "logging"
+        destination = "projects/${lookup(local.ctx.project_ids, v.destination, v.destination)}"
+      },
+      v.type != "pubsub" ? {} : {
+        destination = lookup(
+          local.ctx.pubsub_topics, v.destination, v.destination
+        )
+      },
+      v.type != "storage" ? {} : {
+        destination = lookup(
+          local.ctx.storage_buckets, v.destination, v.destination
+        )
+      }
+    )
+  }
+  sink_bindings = {
+    for type in ["bigquery", "logging", "project", "pubsub", "storage"] :
+    type => {
+      for name, sink in local.logging_sinks :
+      name => sink if sink.iam && sink.type == type
+    }
+  }
+  sink_bucket_expressions = {
+    for name, sink in local.sink_bindings["logging"] :
+    name => "resource.name.endsWith('locations/${split("/", sink.destination)[3]}/buckets/${split("/", sink.destination)[5]}')"
+  }
+}
+
+resource "google_logging_organization_settings" "default" {
+  count                = var.logging_settings != null ? 1 : 0
+  organization         = local.organization_id_numeric
+  disable_default_sink = var.logging_settings.disable_default_sink
+  kms_key_name = (
+    var.logging_settings.kms_key_name == null
+    ? null
+    : lookup(local.ctx.kms_keys, var.logging_settings.kms_key_name, var.logging_settings.kms_key_name)
+  )
+  storage_location = (
+    var.logging_settings.storage_location == null
+    ? null
+    : lookup(local.ctx.locations, var.logging_settings.storage_location, var.logging_settings.storage_location)
+  )
+}
+
+resource "google_organization_iam_audit_config" "default" {
+  for_each = var.logging_data_access
+  org_id   = local.organization_id_numeric
+  service  = each.key
+  dynamic "audit_log_config" {
+    for_each = { for k, v in each.value : k => v if v != null }
+    content {
+      log_type = audit_log_config.key
+      exempted_members = [
+        for m in try(audit_log_config.value.exempted_members, []) :
+        lookup(local.ctx.iam_principals, m, m)
+      ]
+    }
+  }
+}
+
+resource "google_logging_organization_sink" "sink" {
+  for_each = local.logging_sinks
+  name     = each.key
+  description = (
+    each.value.description == null
+    ? "${each.key} (Terraform-managed)."
+    : each.value.description
+  )
+  org_id             = local.organization_id_numeric
+  destination        = "${lookup(each.value, "api", each.value.type)}.googleapis.com/${each.value.destination}"
+  filter             = each.value.filter
+  include_children   = each.value.include_children
+  intercept_children = each.value.intercept_children
+  disabled           = each.value.disabled
+  dynamic "bigquery_options" {
+    for_each = each.value.type == "bigquery" ? [""] : []
+    content {
+      use_partitioned_tables = each.value.bq_partitioned_table
+    }
+  }
+  dynamic "exclusions" {
+    for_each = each.value.exclusions
+    iterator = exclusion
+    content {
+      name   = exclusion.key
+      filter = exclusion.value
+    }
+  }
+  depends_on = [
+    google_organization_iam_binding.authoritative,
+    google_organization_iam_binding.bindings,
+    google_organization_iam_member.bindings
+  ]
+}
+
+moved {
+  from = google_storage_bucket_iam_member.storage-sinks-binding
+  to   = google_storage_bucket_iam_member.storage_sinks_binding
+}
+
+resource "google_storage_bucket_iam_member" "storage_sinks_binding" {
+  for_each = local.sink_bindings["storage"]
+  bucket   = each.value.destination
+  role     = "roles/storage.objectCreator"
+  member   = google_logging_organization_sink.sink[each.key].writer_identity
+}
+
+moved {
+  from = google_bigquery_dataset_iam_member.bq-sinks-binding
+  to   = google_bigquery_dataset_iam_member.bq_sinks_binding
+}
+
+resource "google_bigquery_dataset_iam_member" "bq_sinks_binding" {
+  for_each   = local.sink_bindings["bigquery"]
+  project    = split("/", each.value.destination)[1]
+  dataset_id = split("/", each.value.destination)[3]
+  role       = "roles/bigquery.dataEditor"
+  member     = google_logging_organization_sink.sink[each.key].writer_identity
+}
+
+moved {
+  from = google_pubsub_topic_iam_member.pubsub-sinks-binding
+  to   = google_pubsub_topic_iam_member.pubsub_sinks_binding
+}
+
+resource "google_pubsub_topic_iam_member" "pubsub_sinks_binding" {
+  for_each = local.sink_bindings["pubsub"]
+  project  = split("/", each.value.destination)[1]
+  topic    = split("/", each.value.destination)[3]
+  role     = "roles/pubsub.publisher"
+  member   = google_logging_organization_sink.sink[each.key].writer_identity
+}
+
+moved {
+  from = google_project_iam_member.bucket-sinks-binding
+  to   = google_project_iam_member.bucket_sinks_binding
+}
+
+resource "google_project_iam_member" "bucket_sinks_binding" {
+  for_each = local.sink_bindings["logging"]
+  project  = split("/", each.value.destination)[1]
+  role     = "roles/logging.bucketWriter"
+  member   = google_logging_organization_sink.sink[each.key].writer_identity
+  condition {
+    title       = "${each.key} bucket writer"
+    description = "Grants bucketWriter to ${google_logging_organization_sink.sink[each.key].writer_identity} used by log sink ${each.key} on ${var.organization_id}"
+    expression  = local.sink_bucket_expressions[each.key]
+  }
+}
+
+moved {
+  from = google_project_iam_member.project-sinks-binding
+  to   = google_project_iam_member.project_sinks_binding
+}
+
+resource "google_project_iam_member" "project_sinks_binding" {
+  for_each = local.sink_bindings["project"]
+  project  = each.value.destination
+  role     = "roles/logging.logWriter"
+  member   = google_logging_organization_sink.sink[each.key].writer_identity
+}
+
+moved {
+  from = google_logging_organization_exclusion.logging-exclusion
+  to   = google_logging_organization_exclusion.logging_exclusion
+}
+
+resource "google_logging_organization_exclusion" "logging_exclusion" {
+  for_each    = var.logging_exclusions
+  name        = each.key
+  org_id      = local.organization_id_numeric
+  description = "${each.key} (Terraform-managed)."
+  filter      = each.value
+}

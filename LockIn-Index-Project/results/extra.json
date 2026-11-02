@@ -1,0 +1,82 @@
+{
+ "egress_1000": {
+  "AWS": 81,
+  "Azure": 76,
+  "GCP": 120
+ },
+ "egress_10000": {
+  "AWS": 891,
+  "Azure": 842,
+  "GCP": 1110
+ },
+ "egress_100000": {
+  "AWS": 7812,
+  "Azure": 6696,
+  "GCP": 8317
+ },
+ "egress_1000000": {
+  "AWS": 53886,
+  "Azure": 48268,
+  "GCP": 80317
+ },
+ "glue_mass": 0.527291530449081,
+ "glue_res": 0.5965424337674001,
+ "glue_cfg_median_resource_frac": 0.5384615384615384,
+ "rho_size_lii": 0.1280988785465851,
+ "n_median": 6,
+ "top_AWS": [
+  [
+   "Network core",
+   0.331
+  ],
+  [
+   "IAM/identity",
+   0.244
+  ],
+  [
+   "Object storage",
+   0.08
+  ],
+  [
+   "Serverless functions",
+   0.074
+  ]
+ ],
+ "top_Azure": [
+  [
+   "Raw ARM API (azapi)",
+   0.26
+  ],
+  [
+   "Network core",
+   0.248
+  ],
+  [
+   "Governance/org",
+   0.123
+  ],
+  [
+   "IAM/identity",
+   0.053
+  ]
+ ],
+ "top_GCP": [
+  [
+   "Network core",
+   0.241
+  ],
+  [
+   "IAM/identity",
+   0.17
+  ],
+  [
+   "Governance/org",
+   0.119
+  ],
+  [
+   "Edge (LB/DNS/CDN)",
+   0.076
+  ]
+ ],
+ "share_above_40": 0.2717872968980798
+}

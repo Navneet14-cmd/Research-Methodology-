@@ -1,0 +1,39 @@
+Paper section    Quantity                               Computed   In paper  Result
+Abstract/Sec IV  configurations                          677.000        677 PASS
+Abstract/Sec IV  resource declarations                  8908.000       8908 PASS
+Abstract/Sec IV  distinct resource types                 844.000        844 PASS
+Abstract/Sec IV  repositories                             23.000         23 PASS
+Sec IV           unclassified share (%)                    1.291        1.3 PASS
+Sec IV           median configuration size                 6.000          6 PASS
+Table II         AWS configs                             191.000        191 PASS
+Table II         Azure configs                           248.000        248 PASS
+Table II         GCP configs                             238.000        238 PASS
+Table II         AWS mean LII                             38.564       38.6 PASS
+Table II         Azure mean LII                           31.106       31.1 PASS
+Table II         GCP mean LII                             31.848       31.8 PASS
+Table II         AWS median LII                           41.500       41.5 PASS
+Table II         Azure median LII                         27.222       27.2 PASS
+Table II         GCP median LII                           28.629       28.6 PASS
+Table II         overall mean LII                         33.471       33.5 PASS
+Sec V-A          configs above LII 40 (%)                 27.179       27.2 PASS
+Sec V-A          size vs LII Spearman rho                  0.128       0.13 PASS
+Sec V-B          IAM share of lock-in mass (%)            21.078       21.1 PASS
+Sec V-B          IAM share of resources (%)               16.614       16.6 PASS
+Sec V-B          IAM present in configs (%)               38.552       38.6 PASS
+Abstract/V-B     glue share of resources (%)              59.654       59.7 PASS
+Abstract/V-B     glue share of lock-in mass (%)           52.729       52.7 PASS
+Table III        K8s-centric configs                      47.000         47 PASS
+Table III        K8s-centric median                       25.200       25.2 PASS
+Table III        Managed-PaaS configs                    173.000        173 PASS
+Table III        Managed-PaaS median                      41.864       41.9 PASS
+Table III        Mann-Whitney U                          642.000      642.0 PASS
+Table III        Cliff's delta                            -0.842      -0.84 PASS
+Sec V-D          config ranking rho, median                0.914       0.91 PASS
+Sec V-D          config ranking rho, 5th pct               0.706       0.71 PASS
+Sec V-D          category ranking rho, median              0.966       0.97 PASS
+Sec V-D          K8s lower in % of trials                 99.700       99.7 PASS
+Sec VI           egress 10 TB AWS ($)                    891.000        891 PASS
+Sec VI           egress 10 TB Azure ($)                  842.000        842 PASS
+Sec VI           egress 10 TB GCP ($)                   1110.000       1110 PASS
+
+36/36 checks passed

@@ -1,0 +1,15 @@
+locals {
+  asg_body = [
+    for k, v in var.application_security_group_resource_ids : { id = v }
+  ]
+  ip_configurations_body = [
+    for k, v in var.ip_configurations : {
+      name = v.name
+      properties = {
+        groupId          = var.subresource_name
+        memberName       = coalesce(v.member_name, var.subresource_name)
+        privateIPAddress = v.private_ip_address
+      }
+    }
+  ]
+}

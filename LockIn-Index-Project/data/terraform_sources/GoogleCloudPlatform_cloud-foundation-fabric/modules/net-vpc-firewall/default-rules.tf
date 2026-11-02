@@ -1,0 +1,117 @@
+/**
+ * Copyright 2022 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+# tfdoc:file:description Optional default rule resources.
+
+locals {
+  default_rules = {
+    for k, v in var.default_rules_config :
+    k => var.default_rules_config.disabled == true || v == null ? [] : v
+    if k != "disabled"
+  }
+}
+
+moved {
+  from = google_compute_firewall.allow-admins
+  to   = google_compute_firewall.allow_admins
+}
+
+resource "google_compute_firewall" "allow_admins" {
+  count       = length(local.default_rules.admin_ranges) > 0 ? 1 : 0
+  project     = local.project_id
+  network     = local.network
+  name        = "${local.network_name}-ingress-admins"
+  description = "Access from the admin subnet to all subnets."
+  source_ranges = [
+    for r in local.default_rules.admin_ranges : lookup(local.ctx.cidr_ranges, r, r)
+  ]
+  allow { protocol = "all" }
+}
+
+moved {
+  from = google_compute_firewall.allow-tag-http
+  to   = google_compute_firewall.allow_tag_http
+}
+
+resource "google_compute_firewall" "allow_tag_http" {
+  count = (
+    length(local.default_rules.http_ranges) > 0 &&
+    length(local.default_rules.http_tags) > 0
+    ? 1 : 0
+  )
+  project     = local.project_id
+  network     = local.network
+  name        = "${local.network_name}-ingress-tag-http"
+  description = "Allow http to machines with matching tags."
+  source_ranges = [
+    for r in local.default_rules.http_ranges : lookup(local.ctx.cidr_ranges, r, r)
+  ]
+  target_tags = local.default_rules.http_tags
+  allow {
+    protocol = "tcp"
+    ports    = ["80"]
+  }
+}
+
+moved {
+  from = google_compute_firewall.allow-tag-https
+  to   = google_compute_firewall.allow_tag_https
+}
+
+resource "google_compute_firewall" "allow_tag_https" {
+  count = (
+    length(local.default_rules.https_ranges) > 0 &&
+    length(local.default_rules.https_tags) > 0
+    ? 1 : 0
+  )
+  project     = local.project_id
+  network     = local.network
+  name        = "${local.network_name}-ingress-tag-https"
+  description = "Allow http to machines with matching tags."
+  source_ranges = [
+    for r in local.default_rules.https_ranges : lookup(local.ctx.cidr_ranges, r, r)
+  ]
+  target_tags = local.default_rules.https_tags
+  allow {
+    protocol = "tcp"
+    ports    = ["443"]
+  }
+}
+
+moved {
+  from = google_compute_firewall.allow-tag-ssh
+  to   = google_compute_firewall.allow_tag_ssh
+}
+
+resource "google_compute_firewall" "allow_tag_ssh" {
+  count = (
+    length(local.default_rules.ssh_ranges) > 0 &&
+    length(local.default_rules.ssh_tags) > 0
+    ? 1 : 0
+  )
+  project     = local.project_id
+  network     = local.network
+  name        = "${local.network_name}-ingress-tag-ssh"
+  description = "Allow SSH to machines with matching tags."
+  source_ranges = [
+    for r in local.default_rules.ssh_ranges : lookup(local.ctx.cidr_ranges, r, r)
+  ]
+  target_tags = local.default_rules.ssh_tags
+  allow {
+    protocol = "tcp"
+    ports    = ["22"]
+  }
+}

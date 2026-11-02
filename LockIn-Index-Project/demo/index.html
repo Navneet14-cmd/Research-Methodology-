@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lock-In Index Demo</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <div class="brand">
+      <div class="logo" aria-hidden="true">LII</div>
+      <div>
+        <h1>Lock-In Index</h1>
+        <p class="sub">Measuring cloud vendor lock-in from Terraform code &middot; Soni, Pant, Toshif</p>
+      </div>
+    </div>
+    <nav class="tabs" role="tablist">
+      <button role="tab" data-tab="overview" aria-selected="true">Overview</button>
+      <button role="tab" data-tab="analyze">Analyze Terraform</button>
+      <button role="tab" data-tab="explore">Explore dataset</button>
+      <button role="tab" data-tab="results">Results</button>
+      <button role="tab" data-tab="whatif">What-if rubric</button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+<!-- ============================ OVERVIEW -->
+<section id="overview" class="panel active">
+  <div class="hero">
+    <h2>How locked-in is a cloud application? We turned that question into a number.</h2>
+    <p>The analyzer reads Terraform code, finds every cloud resource it declares, scores each one on four dimensions of lock-in, and averages them into a <b>Lock-In Index from 0 to 100</b>. We ran it on public Terraform code and used the results to answer four research questions.</p>
+  </div>
+  <div class="tiles" id="tiles"></div>
+
+  <h3>The pipeline</h3>
+  <ol class="pipeline">
+    <li><span>1</span><b>Collect</b><em>28 public GitHub repos, cloned at fixed commits</em></li>
+    <li><span>2</span><b>Find roots</b><em>Folders that are deployed directly</em></li>
+    <li><span>3</span><b>Extract</b><em>Every <code>resource "type"</code>, following local modules</em></li>
+    <li><span>4</span><b>Classify</b><em>21 service categories by pattern rules</em></li>
+    <li><span>5</span><b>Score</b><em>LII(r) = 0.35A + 0.25D + 0.25E + 0.15X</em></li>
+    <li><span>6</span><b>Analyse</b><em>Averages, tests, sensitivity, figures</em></li>
+  </ol>
+
+  <h3>What we found</h3>
+  <div class="cards3">
+    <article class="card">
+      <div class="kicker">RQ2</div>
+      <h4>Glue causes most lock-in</h4>
+      <p id="f1"></p>
+      <button class="link" data-goto="results" data-rq="rq2">See the evidence &rarr;</button>
+    </article>
+    <article class="card">
+      <div class="kicker">RQ3</div>
+      <h4>Kubernetes designs are far less locked-in</h4>
+      <p id="f2"></p>
+      <button class="link" data-goto="results" data-rq="rq3">See the evidence &rarr;</button>
+    </article>
+    <article class="card">
+      <div class="kicker">RQ4</div>
+      <h4>The conclusions are robust</h4>
+      <p id="f3"></p>
+      <button class="link" data-goto="whatif">Try it yourself &rarr;</button>
+    </article>
+  </div>
+</section>
+
+<!-- ============================ ANALYZE -->
+<section id="analyze" class="panel">
+  <div class="two">
+    <div>
+      <h2>Analyze Terraform code</h2>
+      <p class="muted">Paste Terraform (.tf) code or upload files. The same rules and rubric used in the paper are applied here, in your browser.</p>
+      <div class="row gap">
+        <span class="muted small">Try a sample:</span>
+        <button class="chip" data-sample="serverless">Serverless app (AWS)</button>
+        <button class="chip" data-sample="gke">Kubernetes cluster (GCP)</button>
+        <button class="chip" data-sample="iaas">Web app on VMs (AWS)</button>
+      </div>
+      <textarea id="tf" spellcheck="false" aria-label="Terraform code"></textarea>
+      <div class="row gap">
+        <button id="run" class="primary">Analyze</button>
+        <label class="upload">Upload .tf files<input id="files" type="file" accept=".tf" multiple></label>
+        <span id="fileinfo" class="muted small"></span>
+      </div>
+      <p class="muted small">Note: modules referenced from other folders or the Terraform registry are not followed when pasting; upload those files too to include them.</p>
+    </div>
+    <div>
+      <div id="scorebox" class="scorebox empty">
+        <p class="muted">Results appear here.</p>
+      </div>
+    </div>
+  </div>
+  <div id="breakdown"></div>
+</section>
+
+<!-- ============================ EXPLORE -->
+<section id="explore" class="panel">
+  <h2>Explore the dataset</h2>
+  <p class="muted">All configurations we analysed. Click one to see how its score was calculated, and open its source on GitHub at the exact commit we used.</p>
+  <div class="filters">
+    <input id="q" type="search" placeholder="Search repository, path or resource type">
+    <select id="fprov" aria-label="Provider"><option value="">All providers</option><option>AWS</option><option>Azure</option><option>GCP</option></select>
+    <select id="fgroup" aria-label="Architecture group"><option value="">All groups</option><option>K8s-centric</option><option>IaaS/other</option><option>Managed-PaaS-centric</option></select>
+    <select id="fsort" aria-label="Sort"><option value="desc">Highest LII first</option><option value="asc">Lowest LII first</option><option value="path">By path</option></select>
+    <span id="count" class="muted small"></span>
+  </div>
+  <div class="two wide-left">
+    <div class="tablewrap"><table id="cfgtable"><thead><tr><th>ID</th><th>Repository / path</th><th>Cloud</th><th>Group</th><th class="num">Res.</th><th class="num">LII</th></tr></thead><tbody></tbody></table></div>
+    <div id="detail" class="detail"><p class="muted">Select a configuration.</p></div>
+  </div>
+</section>
+
+<!-- ============================ RESULTS -->
+<section id="results" class="panel">
+  <h2>Results: how each conclusion was reached</h2>
+  <p class="muted">Every chart below is computed live in your browser from the dataset, not copied from the paper.</p>
+  <div class="subtabs" role="tablist">
+    <button data-rq="rq1" aria-selected="true">RQ1 &middot; Providers</button>
+    <button data-rq="rq2">RQ2 &middot; Categories</button>
+    <button data-rq="rq3">RQ3 &middot; Architectures</button>
+    <button data-rq="rq4">RQ4 &middot; Robustness</button>
+    <button data-rq="egress">Exit cost</button>
+  </div>
+  <div id="rqbody"></div>
+</section>
+
+<!-- ============================ WHAT-IF -->
+<section id="whatif" class="panel">
+  <h2>What if the rubric were different?</h2>
+  <p class="muted">The rubric weights are our judgment. Move the sliders to change them, and every score in the dataset is recalculated. If the conclusions still hold, they don't depend on our exact choices. That is RQ4, done by hand.</p>
+  <div class="two">
+    <div class="card">
+      <h4>Weights</h4>
+      <div id="sliders"></div>
+      <div class="row gap"><button id="reset" class="ghost">Reset to paper values</button><button id="randomize" class="ghost">Random rubric</button></div>
+      <p class="muted small">Weights are normalised to add up to 1. "Random rubric" also shifts every category score by up to &plusmn;0.15, as in the paper's 1,000 trials.</p>
+    </div>
+    <div>
+      <div id="whatifout"></div>
+    </div>
+  </div>
+</section>
+
+</main>
+<footer class="wrap foot muted small">
+  Data: <span id="footdata"></span>. Generated by <code>run_all.sh</code>. Works offline.
+</footer>
+<div id="tip" class="tip" role="tooltip"></div>
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

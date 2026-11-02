@@ -1,0 +1,22 @@
+category,resources,share_of_resources_pct,share_of_lockin_mass_pct,configs_containing_pct,resource_lii
+IAM/identity,1480,16.61,21.08,38.55,44.0
+Network core,2497,28.03,15.36,50.37,19.0
+Raw ARM API (azapi),685,7.69,11.2,5.02,50.5
+Governance/org,685,7.69,8.43,45.94,38.0
+Analytics/AI,243,2.73,6.1,8.86,77.5
+Object storage,462,5.19,5.08,19.65,34.0
+Messaging/eventing,269,3.02,4.22,14.33,48.5
+Observability,335,3.76,4.17,20.09,38.5
+API/workflow,246,2.76,4.1,7.53,51.5
+Serverless functions,282,3.17,3.7,11.67,40.5
+Secrets/KMS,317,3.56,3.69,14.77,36.0
+Edge (LB/DNS/CDN),357,4.01,3.06,16.4,26.5
+Relational DB,188,2.11,2.04,11.37,33.5
+Compute (VM),287,3.22,1.95,23.63,21.0
+Proprietary containers,134,1.5,1.6,8.57,37.0
+Other provider,115,1.29,1.4,9.45,37.5
+Block storage,128,1.44,1.12,6.06,27.0
+Proprietary NoSQL,33,0.37,0.87,2.95,81.0
+Managed Kubernetes,132,1.48,0.73,6.94,17.0
+Container registry,11,0.12,0.07,1.03,19.0
+Kubernetes-native,22,0.25,0.04,1.33,6.0

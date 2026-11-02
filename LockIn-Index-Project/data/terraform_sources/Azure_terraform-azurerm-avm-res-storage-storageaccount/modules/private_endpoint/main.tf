@@ -1,0 +1,127 @@
+resource "azapi_resource" "this" {
+  location  = var.location
+  name      = var.name
+  parent_id = var.parent_id
+  type      = var.resource_type
+  body = merge(
+    {
+      # customNetworkInterfaceName is only included when set. Azure stores an unset
+      # custom NIC name as an empty string, so sending null would cause a perpetual
+      # "" -> null diff and break idempotency.
+      properties = merge(
+        {
+          subnet = {
+            id = var.subnet_resource_id
+          }
+          privateLinkServiceConnections = [
+            {
+              name = var.private_service_connection_name == null ? "pse-${var.name}" : var.private_service_connection_name
+              properties = {
+                privateLinkServiceId = var.private_connection_resource_id
+                groupIds             = [var.subresource_name]
+              }
+            }
+          ]
+          ipConfigurations          = local.ip_configurations_body
+          applicationSecurityGroups = local.asg_body
+        },
+        var.network_interface_name == null ? {} : {
+          customNetworkInterfaceName = var.network_interface_name
+        }
+      )
+    },
+    var.edge_zone == null ? {} : {
+      extendedLocation = {
+        name = var.edge_zone
+        type = "EdgeZone"
+      }
+    }
+  )
+  response_export_values = []
+  retry                  = var.retry
+  tags                   = var.tags
+
+  dynamic "timeouts" {
+    for_each = var.timeouts == null ? [] : [var.timeouts]
+
+    content {
+      create = timeouts.value.create
+      delete = timeouts.value.delete
+      read   = timeouts.value.read
+      update = timeouts.value.update
+    }
+  }
+}
+
+# Optional managed private DNS zone group.
+resource "azapi_resource" "private_dns_zone_group" {
+  count = var.manage_dns_zone_group && length(var.private_dns_zone_resource_ids) > 0 ? 1 : 0
+
+  name      = var.private_dns_zone_group_name
+  parent_id = azapi_resource.this.id
+  type      = var.dns_zone_group_resource_type
+  body = {
+    properties = {
+      privateDnsZoneConfigs = [
+        for idx, zid in tolist(var.private_dns_zone_resource_ids) : {
+          name = "config-${idx}"
+          properties = {
+            privateDnsZoneId = zid
+          }
+        }
+      ]
+    }
+  }
+  response_export_values = []
+  retry                  = var.retry
+
+  dynamic "timeouts" {
+    for_each = var.timeouts == null ? [] : [var.timeouts]
+
+    content {
+      create = timeouts.value.create
+      delete = timeouts.value.delete
+      read   = timeouts.value.read
+      update = timeouts.value.update
+    }
+  }
+}
+
+# Optional lock on the private endpoint.
+resource "azapi_resource" "lock" {
+  count = var.lock != null ? 1 : 0
+
+  name      = coalesce(var.lock.name, "lock-${var.name}")
+  parent_id = azapi_resource.this.id
+  type      = var.lock_resource_type
+  body = {
+    properties = {
+      level = var.lock.kind
+      notes = coalesce(var.lock.notes, var.lock.kind == "CanNotDelete" ? "Cannot delete the resource or its child resources." : "Cannot delete or modify the resource or its child resources.")
+    }
+  }
+  response_export_values = []
+  retry                  = var.retry
+
+  dynamic "timeouts" {
+    for_each = var.timeouts == null ? [] : [var.timeouts]
+
+    content {
+      create = timeouts.value.create
+      delete = timeouts.value.delete
+      read   = timeouts.value.read
+      update = timeouts.value.update
+    }
+  }
+}
+
+module "role_assignments" {
+  source = "../role_assignments"
+
+  location                                  = var.location
+  scope                                     = azapi_resource.this.id
+  retry                                     = var.retry
+  role_assignment_definition_lookup_enabled = var.role_assignment_definition_lookup_enabled
+  role_assignments                          = var.role_assignments
+  timeouts                                  = var.timeouts
+}

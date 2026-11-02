@@ -1,0 +1,133 @@
+configs 677
+resources 8908 distinct types 844
+unclassified share 0.012909744050291872
+top unclassified [('google_compute_backend_bucket', 5), ('aws_pipes_pipe', 4), ('google_compute_reservation', 4), ('azurerm_recovery_services_vault', 3), ('google_compute_target_tcp_proxy', 3), ('google_compute_target_ssl_proxy', 3), ('google_compute_region_disk', 2), ('aws_directory_service_directory', 2), ('aws_odb_cloud_exadata_infrastructure', 2), ('aws_ram_resource_share', 2), ('aws_ram_resource_association', 2), ('aws_ram_principal_association', 2), ('azurerm_automation_schedule', 2), ('azurerm_site_recovery_protection_container', 2), ('azurerm_service_fabric_cluster', 2), ('azurerm_hdinsight_hadoop_cluster', 2), ('aws_service_discovery_http_namespace', 2), ('google_compute_packet_mirroring', 2), ('google_compute_autoscaler', 2), ('google_compute_per_instance_config', 2), ('google_apikeys_key', 1), ('google_chronicle_reference_list', 1), ('google_chronicle_rule', 1), ('google_chronicle_rule_deployment', 1), ('google_chronicle_data_access_label', 1)]
+{
+ "Azure": {
+  "n": 248,
+  "mean": 31.105794012383065,
+  "median": 27.222222222,
+  "sd": 8.783500390510895,
+  "q1": 24.25,
+  "q3": 37.333333333,
+  "min": 20.75,
+  "max": 52.35
+ },
+ "GCP": {
+  "n": 238,
+  "mean": 31.84838303752521,
+  "median": 28.628787879,
+  "sd": 11.555414214252758,
+  "q1": 23.5625,
+  "q3": 38.4,
+  "min": 9.142857143,
+  "max": 77.5
+ },
+ "AWS": {
+  "n": 191,
+  "mean": 38.56390971643979,
+  "median": 41.5,
+  "sd": 8.5539055904978,
+  "q1": 34.0625,
+  "q3": 44.4,
+  "min": 19.0,
+  "max": 54.826086957
+ }
+}
+IAM/identity             res= 1480 resshare=0.166 mass=0.211 prev=0.39 lii=44.0
+Network core             res= 2497 resshare=0.280 mass=0.154 prev=0.50 lii=19.0
+Raw ARM API (azapi)      res=  685 resshare=0.077 mass=0.112 prev=0.05 lii=50.5
+Governance/org           res=  685 resshare=0.077 mass=0.084 prev=0.46 lii=38.0
+Analytics/AI             res=  243 resshare=0.027 mass=0.061 prev=0.09 lii=77.5
+Object storage           res=  462 resshare=0.052 mass=0.051 prev=0.20 lii=34.0
+Messaging/eventing       res=  269 resshare=0.030 mass=0.042 prev=0.14 lii=48.5
+Observability            res=  335 resshare=0.038 mass=0.042 prev=0.20 lii=38.5
+API/workflow             res=  246 resshare=0.028 mass=0.041 prev=0.08 lii=51.5
+Serverless functions     res=  282 resshare=0.032 mass=0.037 prev=0.12 lii=40.5
+Secrets/KMS              res=  317 resshare=0.036 mass=0.037 prev=0.15 lii=36.0
+Edge (LB/DNS/CDN)        res=  357 resshare=0.040 mass=0.031 prev=0.16 lii=26.5
+Relational DB            res=  188 resshare=0.021 mass=0.020 prev=0.11 lii=33.5
+Compute (VM)             res=  287 resshare=0.032 mass=0.020 prev=0.24 lii=21.0
+Proprietary containers   res=  134 resshare=0.015 mass=0.016 prev=0.09 lii=37.0
+Other provider           res=  115 resshare=0.013 mass=0.014 prev=0.09 lii=37.5
+Block storage            res=  128 resshare=0.014 mass=0.011 prev=0.06 lii=27.0
+Proprietary NoSQL        res=   33 resshare=0.004 mass=0.009 prev=0.03 lii=81.0
+Managed Kubernetes       res=  132 resshare=0.015 mass=0.007 prev=0.07 lii=17.0
+Container registry       res=   11 resshare=0.001 mass=0.001 prev=0.01 lii=19.0
+Kubernetes-native        res=   22 resshare=0.002 mass=0.000 prev=0.01 lii=6.0
+{
+ "K8s-centric": {
+  "n": 47,
+  "median": 25.2,
+  "mean": 26.15653073051064
+ },
+ "IaaS/other": {
+  "n": 457,
+  "median": 27.1,
+  "mean": 31.45515280443545
+ },
+ "Managed-PaaS-centric": {
+  "n": 173,
+  "median": 41.863636364,
+  "mean": 40.783219987751444
+ },
+ "test": {
+  "U": 642.0,
+  "z": -8.8469350286763,
+  "p": 8.995572882926244e-19,
+  "cliffs_delta": -0.8420858442995942
+ }
+}
+{
+ "N": 1000,
+ "rho_median": 0.9144648609999994,
+ "rho_p05": 0.7057985241945632,
+ "rho_min": 0.24698485977172127,
+ "cat_rho_median": 0.9662337662337662,
+ "cat_rho_p05": 0.9025974025974026,
+ "k8s_lower_share": 0.997
+}
+{
+ "n_configs": 677,
+ "n_repos": 23,
+ "n_resources": 8908,
+ "n_types": 844,
+ "unclassified_share": 0.012909744050291872,
+ "multi_cloud": 0,
+ "provider_counts": {
+  "Azure": 248,
+  "GCP": 238,
+  "AWS": 191
+ },
+ "repo_counts": {
+  "Azure/terraform-azurerm-aks": 9,
+  "Azure/terraform-azurerm-avm-res-keyvault-vault": 6,
+  "Azure/terraform-azurerm-avm-res-storage-storageaccount": 15,
+  "Azure/terraform-azurerm-caf-enterprise-scale": 4,
+  "GoogleCloudPlatform/cloud-foundation-fabric": 6,
+  "aws-samples/serverless-patterns": 90,
+  "hashicorp/learn-terraform-provision-gke-cluster": 1,
+  "hashicorp/terraform-provider-aws": 33,
+  "hashicorp/terraform-provider-azurerm": 214,
+  "terraform-aws-modules/terraform-aws-apigateway-v2": 3,
+  "terraform-aws-modules/terraform-aws-dynamodb-table": 4,
+  "terraform-aws-modules/terraform-aws-ecs": 5,
+  "terraform-aws-modules/terraform-aws-eks": 4,
+  "terraform-aws-modules/terraform-aws-lambda": 16,
+  "terraform-aws-modules/terraform-aws-rds": 12,
+  "terraform-aws-modules/terraform-aws-s3-bucket": 11,
+  "terraform-aws-modules/terraform-aws-vpc": 13,
+  "terraform-google-modules/terraform-docs-samples": 204,
+  "terraform-google-modules/terraform-google-event-function": 1,
+  "terraform-google-modules/terraform-google-kubernetes-engine": 8,
+  "terraform-google-modules/terraform-google-network": 15,
+  "terraform-google-modules/terraform-google-pubsub": 1,
+  "terraform-google-modules/terraform-google-sql-db": 2
+ },
+ "group_counts": {
+  "K8s-centric": 47,
+  "IaaS/other": 457,
+  "Managed-PaaS-centric": 173
+ }
+}
+wrote results/tables

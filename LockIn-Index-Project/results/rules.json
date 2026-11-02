@@ -1,0 +1,227 @@
+{
+ "weights": [
+  0.35,
+  0.25,
+  0.25,
+  0.15
+ ],
+ "categories": {
+  "Compute (VM)": [
+   0.3,
+   0.2,
+   0.1,
+   0.2
+  ],
+  "Block storage": [
+   0.2,
+   0.4,
+   0.1,
+   0.5
+  ],
+  "Object storage": [
+   0.3,
+   0.3,
+   0.1,
+   0.9
+  ],
+  "Network core": [
+   0.4,
+   0.0,
+   0.2,
+   0.0
+  ],
+  "Edge (LB/DNS/CDN)": [
+   0.5,
+   0.0,
+   0.3,
+   0.1
+  ],
+  "Managed Kubernetes": [
+   0.3,
+   0.1,
+   0.1,
+   0.1
+  ],
+  "Container registry": [
+   0.2,
+   0.2,
+   0.1,
+   0.3
+  ],
+  "Proprietary containers": [
+   0.7,
+   0.1,
+   0.4,
+   0.0
+  ],
+  "Serverless functions": [
+   0.8,
+   0.1,
+   0.4,
+   0.0
+  ],
+  "Relational DB": [
+   0.3,
+   0.4,
+   0.1,
+   0.7
+  ],
+  "Proprietary NoSQL": [
+   0.9,
+   0.8,
+   0.7,
+   0.8
+  ],
+  "Messaging/eventing": [
+   0.8,
+   0.3,
+   0.4,
+   0.2
+  ],
+  "API/workflow": [
+   0.9,
+   0.2,
+   0.6,
+   0.0
+  ],
+  "IAM/identity": [
+   0.9,
+   0.0,
+   0.5,
+   0.0
+  ],
+  "Secrets/KMS": [
+   0.6,
+   0.3,
+   0.3,
+   0.0
+  ],
+  "Observability": [
+   0.7,
+   0.2,
+   0.3,
+   0.1
+  ],
+  "Analytics/AI": [
+   0.9,
+   0.7,
+   0.6,
+   0.9
+  ],
+  "Governance/org": [
+   0.8,
+   0.0,
+   0.4,
+   0.0
+  ],
+  "Kubernetes-native": [
+   0.1,
+   0.1,
+   0.0,
+   0.0
+  ],
+  "Raw ARM API (azapi)": [
+   0.9,
+   0.2,
+   0.5,
+   0.1
+  ],
+  "Other provider": [
+   0.6,
+   0.2,
+   0.4,
+   0.1
+  ]
+ },
+ "rules": [
+  [
+   "Analytics/AI",
+   "(data_catalog|looker|sagemaker|bedrock|redshift|athena|glue|emr|kinesis_analytics|opensearch|elasticsearch|bigquery|dataflow|dataproc|dataplex|vertex|ml_|machine_learning|cognitive|synapse|databricks|data_factory|datafactory|lakeformation|quicksight|notebooks|composer|stream_analytics|kusto|search_service|comprehend|rekognition|translate|ai_)"
+  ],
+  [
+   "Proprietary NoSQL",
+   "(dynamodb|cosmosdb|firestore|bigtable|spanner|datastore|documentdb|docdb|keyspaces|timestream|neptune|memorydb|table_storage|storage_table)"
+  ],
+  [
+   "Relational DB",
+   "(^db_|_db_|rds|aurora|sql_database|sql_server|mssql|mysql|postgresql|mariadb|sql_user|sql_ssl|alloydb|elasticache|redis|memcache|database)"
+  ],
+  [
+   "Managed Kubernetes",
+   "(^eks_|kubernetes_cluster|container_cluster|container_node_pool|gke_|^aks)"
+  ],
+  [
+   "Container registry",
+   "(^ecr_|container_registry|artifact_registry)"
+  ],
+  [
+   "Proprietary containers",
+   "(^ecs_|apprunner|container_app|container_group|cloud_run|cloudrun|app_service|web_app|service_plan|elastic_beanstalk|app_engine|spring_cloud|batch_)"
+  ],
+  [
+   "Serverless functions",
+   "(^lambda_|function_app|cloudfunctions|cloudfunctions2|^function)"
+  ],
+  [
+   "API/workflow",
+   "(automation_account|integration_connectors|integrations_|application_integration|api_gateway|apigatewayv2|apigateway|api_management|apigee|^sfn_|logic_app|workflows|step_function|appsync|endpoints_)"
+  ],
+  [
+   "Messaging/eventing",
+   "(eventarc|managedkafka|managed_kafka|^sqs_|^sns_|eventbridge|cloudwatch_event|^kinesis|^mq_|^msk_|servicebus|eventhub|eventgrid|pubsub|^ses_|scheduler|cloud_tasks|cloud_scheduler|notification_hub|iot)"
+  ],
+  [
+   "Secrets/KMS",
+   "(disk_encryption_set|privateca|kms|key_vault|secret|secretsmanager|certificate|acm_|ssm_parameter|cloudhsm)"
+  ],
+  [
+   "IAM/identity",
+   "(^iam_|_iam_|_iam$|role_assignment|role_definition|user_assigned_identity|^azuread_|service_account|cognito|identity|federated|access_policy|^sso|workload_identity|organizations_policy|lake_permissions|^lambda_permission)"
+  ],
+  [
+   "Observability",
+   "(cloudwatch|monitor|log_analytics|application_insights|logging|^log_|_log_|alert|metric|dashboard|xray|diagnostic|flow_log|cloudtrail|insights)"
+  ],
+  [
+   "Governance/org",
+   "(essential_contacts|privileged_access_manager|^scc|access_context_manager|assured_workloads|resource_manager_lien|cloud_quotas|cloud_asset|organizations|organization|management_group|resource_group|^project$|^project_|folder|policy|config_rule|budget|tag|resource_provider|subscription|security_center|guardduty|securityhub|blueprint|consumption|billing)"
+  ],
+  [
+   "Object storage",
+   "(^s3|storage_notification|storage_bucket|storage_account|storage_container|storage_blob|storage_share|storage_management|data_lake|storage_object|storage_queue)"
+  ],
+  [
+   "Block storage",
+   "(ebs_|managed_disk|compute_disk|snapshot|^efs_|^fsx_|netapp|file_share|filestore|backup|compute_image|image$|shared_image)"
+  ],
+  [
+   "Compute (VM)",
+   "(compute_project_metadata|^instance|launch_template|launch_configuration|autoscaling|virtual_machine|vm_|compute_instance|instance_template|instance_group|spot|placement_group|key_pair|availability_set|dedicated_host|compute_region_instance|scale_set|ami)"
+  ],
+  [
+   "Edge (LB/DNS/CDN)",
+   "(^lb|^alb|^elb|load_balancer|lb_|route53|dns|cdn|cloudfront|front_door|frontdoor|application_gateway|traffic_manager|global_accelerator|forwarding_rule|target_pool|target_http|url_map|backend_service|health_check|ssl_policy|waf|wafv2|armor)"
+  ],
+  [
+   "Network core",
+   "(customer_gateway|private_link_service|vpc|subnet|route|security_group|network|nat|internet_gateway|eip|vpn|firewall|peering|private_endpoint|private_dns|public_ip|bastion|transit_gateway|router|address|interconnect|egress_only|dhcp|prefix_list|ec2_|express_route|virtual_hub|virtual_wan|ip_group|service_connect|vpc_endpoint)"
+  ]
+ ],
+ "utility": [
+  "archive",
+  "assert",
+  "cloudinit",
+  "external",
+  "github",
+  "http",
+  "local",
+  "modtm",
+  "null",
+  "random",
+  "template",
+  "terraform",
+  "tfe",
+  "time",
+  "tls"
+ ]
+}

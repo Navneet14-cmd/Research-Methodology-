@@ -1,0 +1,44 @@
+module "interfaces" {
+  source  = "Azure/avm-utl-interfaces/azure"
+  version = "0.9.0"
+
+  location               = var.location
+  diagnostic_settings_v2 = var.diagnostic_settings
+  enable_telemetry       = var.enable_telemetry
+}
+
+resource "azapi_resource" "this" {
+  for_each = module.interfaces.diagnostic_settings_azapi_v2
+
+  name                 = each.value.name
+  parent_id            = var.parent_id
+  type                 = each.value.type
+  body                 = each.value.body
+  ignore_null_property = true
+  ignore_other_items_in_list = [
+    "properties.logs",
+    "properties.metrics",
+  ]
+  list_unique_id_property = {
+    "properties.logs"    = "category, categoryGroup"
+    "properties.metrics" = "category"
+  }
+  response_export_values    = []
+  retry                     = var.retry
+  schema_validation_enabled = false
+
+  dynamic "timeouts" {
+    for_each = var.timeouts == null ? [] : [var.timeouts]
+
+    content {
+      create = timeouts.value.create
+      delete = timeouts.value.delete
+      read   = timeouts.value.read
+      update = timeouts.value.update
+    }
+  }
+
+  lifecycle {
+    ignore_changes = [body.properties.logAnalyticsDestinationType]
+  }
+}
