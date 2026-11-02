@@ -1,0 +1,718 @@
+variable "location" {
+  type        = string
+  description = "The Azure location where the resources will be deployed."
+  nullable    = false
+}
+
+variable "name" {
+  type        = string
+  description = "The name of the Key Vault."
+
+  validation {
+    condition     = can(regex("^[a-zA-Z0-9-]{3,24}$", var.name))
+    error_message = "The name must be between 3 and 24 characters long and can only contain letters, numbers and dashes."
+  }
+  validation {
+    error_message = "The name must not contain two consecutive dashes"
+    condition     = !can(regex("--", var.name))
+  }
+  validation {
+    error_message = "The name must start with a letter"
+    condition     = can(regex("^[a-zA-Z]", var.name))
+  }
+  validation {
+    error_message = "The name must end with a letter or number"
+    condition     = can(regex("[a-zA-Z0-9]$", var.name))
+  }
+}
+
+# This is required for most resource modules
+variable "parent_id" {
+  type        = string
+  description = <<DESCRIPTION
+The fully-qualified ARM resource ID of the existing resource group into which the key vault will be deployed, for example `/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-rg`. Changing this forces a new resource to be created.
+
+This module does not create the resource group.
+DESCRIPTION
+  nullable    = false
+
+  validation {
+    condition     = can(provider::azapi::parse_resource_id("Microsoft.Resources/resourceGroups", var.parent_id))
+    error_message = "`parent_id` must be a valid Azure resource group resource ID."
+  }
+}
+
+variable "tenant_id" {
+  type        = string
+  description = "The Azure tenant ID used for authenticating requests to Key Vault. You can use the `azurerm_client_config` data source to retrieve it."
+
+  validation {
+    condition     = can(regex("^[0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12}$", var.tenant_id))
+    error_message = "The tenant ID must be a valid GUID. Letters must be lowercase."
+  }
+}
+
+variable "contacts" {
+  type = map(object({
+    email = string
+    name  = optional(string, null)
+    phone = optional(string, null)
+  }))
+  default     = {}
+  description = "A map of contacts for the Key Vault. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time."
+}
+
+variable "diagnostic_settings" {
+  type = map(object({
+    name                                     = optional(string, null)
+    log_categories                           = optional(set(string), [])
+    log_groups                               = optional(set(string), ["allLogs"])
+    metric_categories                        = optional(set(string), ["AllMetrics"])
+    log_analytics_destination_type           = optional(string, "Dedicated")
+    workspace_resource_id                    = optional(string, null)
+    storage_account_resource_id              = optional(string, null)
+    event_hub_authorization_rule_resource_id = optional(string, null)
+    event_hub_name                           = optional(string, null)
+    marketplace_partner_resource_id          = optional(string, null)
+  }))
+  default     = {}
+  description = <<DESCRIPTION
+A map of diagnostic settings to create on the Key Vault. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
+
+- `name` - (Optional) The name of the diagnostic setting. One will be generated if not set, however this will not be unique if you want to create multiple diagnostic setting resources.
+- `log_categories` - (Optional) A set of log categories to send to the log analytics workspace. Defaults to `[]`.
+- `log_groups` - (Optional) A set of log groups to send to the log analytics workspace. Defaults to `["allLogs"]`.
+- `metric_categories` - (Optional) A set of metric categories to send to the log analytics workspace. Defaults to `["AllMetrics"]`.
+- `log_analytics_destination_type` - (Optional) The destination type for the diagnostic setting. Possible values are `Dedicated` and `AzureDiagnostics`. Defaults to `Dedicated`.
+- `workspace_resource_id` - (Optional) The resource ID of the log analytics workspace to send logs and metrics to.
+- `storage_account_resource_id` - (Optional) The resource ID of the storage account to send logs and metrics to.
+- `event_hub_authorization_rule_resource_id` - (Optional) The resource ID of the event hub authorization rule to send logs and metrics to.
+- `event_hub_name` - (Optional) The name of the event hub. If none is specified, the default event hub will be selected.
+- `marketplace_partner_resource_id` - (Optional) The full ARM resource ID of the Marketplace resource to which you would like to send Diagnostic LogsLogs.
+DESCRIPTION
+  nullable    = false
+
+  validation {
+    condition     = alltrue([for _, v in var.diagnostic_settings : contains(["Dedicated", "AzureDiagnostics"], v.log_analytics_destination_type)])
+    error_message = "Log analytics destination type must be one of: 'Dedicated', 'AzureDiagnostics'."
+  }
+  validation {
+    condition = alltrue(
+      [
+        for _, v in var.diagnostic_settings :
+        v.workspace_resource_id != null || v.storage_account_resource_id != null || v.event_hub_authorization_rule_resource_id != null || v.marketplace_partner_resource_id != null
+      ]
+    )
+    error_message = "At least one of `workspace_resource_id`, `storage_account_resource_id`, `marketplace_partner_resource_id`, or `event_hub_authorization_rule_resource_id`, must be set."
+  }
+}
+
+variable "enable_telemetry" {
+  type        = bool
+  default     = true
+  description = <<DESCRIPTION
+This variable controls whether or not telemetry is enabled for the module.
+For more information see <https://aka.ms/avm/telemetryinfo>.
+If it is set to false, then no telemetry will be collected.
+DESCRIPTION
+  nullable    = false
+}
+
+variable "enabled_for_deployment" {
+  type        = bool
+  default     = false
+  description = "Specifies whether Azure Virtual Machines are permitted to retrieve certificates stored as secrets from the vault."
+}
+
+variable "enabled_for_disk_encryption" {
+  type        = bool
+  default     = false
+  description = "Specifies whether Azure Disk Encryption is permitted to retrieve secrets from the vault and unwrap keys."
+}
+
+variable "enabled_for_template_deployment" {
+  type        = bool
+  default     = false
+  description = "Specifies whether Azure Resource Manager is permitted to retrieve secrets from the vault."
+}
+
+variable "ignore_body_changes" {
+  type = object({
+    authorization_locks                               = optional(list(string), [])
+    authorization_role_assignments                    = optional(list(string), [])
+    insights_diagnostic_settings                      = optional(list(string), [])
+    keyvault_vaults                                   = optional(list(string), [])
+    network_private_endpoints                         = optional(list(string), [])
+    network_private_endpoints_private_dns_zone_groups = optional(list(string), [])
+  })
+  default     = {}
+  description = <<DESCRIPTION
+Paths in each resource's `body` whose changes the AzAPI provider ignores. Prefer Terraform's `lifecycle.ignore_changes` when the paths are static; use this variable when the paths must be derived from variables or other non-static values.
+
+Paths use dot notation, for example `properties.sku.name`. Individual list items cannot be targeted — ignore the whole list property instead. Configuration changes at an ignored path are **not** sent to Azure until that path is removed from the list.
+
+Supplying a non-empty value requires Terraform 1.11 or later, because `ignore_body_changes` is a write-only argument. Changes take effect only after an apply, because the value is held in provider-private state.
+
+- `authorization_locks` - Ignored body paths for the management locks on the key vault and the private endpoints.
+- `authorization_role_assignments` - Ignored body paths for the role assignments.
+- `insights_diagnostic_settings` - Ignored body paths for the diagnostic settings.
+- `keyvault_vaults` - Ignored body paths for the key vault.
+- `network_private_endpoints` - Ignored body paths for the private endpoints.
+- `network_private_endpoints_private_dns_zone_groups` - Ignored body paths for the private DNS zone groups.
+DESCRIPTION
+  nullable    = false
+}
+
+variable "keys" {
+  type = map(object({
+    name     = string
+    key_type = string
+    key_opts = optional(list(string), ["sign", "verify"])
+
+    key_size        = optional(number, null)
+    curve           = optional(string, null)
+    not_before_date = optional(string, null)
+    expiration_date = optional(string, null)
+    tags            = optional(map(any), null)
+
+    role_assignments = optional(map(object({
+      role_definition_id_or_name             = string
+      principal_id                           = string
+      description                            = optional(string, null)
+      skip_service_principal_aad_check       = optional(bool, false)
+      condition                              = optional(string, null)
+      condition_version                      = optional(string, null)
+      delegated_managed_identity_resource_id = optional(string, null)
+      principal_type                         = optional(string, null)
+    })), {})
+
+    release_policy = optional(object({
+      json      = string
+      immutable = optional(bool, false)
+    }), null)
+
+    rotation_policy = optional(object({
+      automatic = optional(object({
+        time_after_creation = optional(string, null)
+        time_before_expiry  = optional(string, null)
+      }), null)
+      expire_after         = optional(string, null)
+      notify_before_expiry = optional(string, null)
+    }), null)
+  }))
+  default     = {}
+  description = <<DESCRIPTION
+A map of keys to create on the Key Vault. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
+
+- `name` - The name of the key.
+- `key_type` - The type of the key. Possible values are `EC`, `EC-HSM`, `RSA`, and `RSA-HSM`. The values are case-sensitive. The HSM-backed types (`EC-HSM` and `RSA-HSM`) require `var.sku_name` to be set to `premium`.
+- `key_opts` - A list of key options. Possible values are `decrypt`, `encrypt`, `sign`, `unwrapKey`, `verify`, and `wrapKey`.
+- `key_size` - The size of the key, e.g. `2048` or `4096`. Required for `RSA` and `RSA-HSM` keys.
+- `curve` - The curve of the key. Required for `EC` and `EC-HSM` keys.  Possible values are `P-256`, `P-256K`, `P-384`, and `P-521`. The API will default to `P-256` if nothing is specified.
+- `not_before_date` - The not before date of the key.
+- `expiration_date` - The expiration date of the key.
+- `tags` - A mapping of tags to assign to the key.
+- `release_policy` - A secure key release policy for an `EC-HSM` or `RSA-HSM` key in a Premium Key Vault. The provider automatically makes the key exportable. Adding, changing, or removing a release policy on an existing key replaces the key because the provider marks the block `ForceNew`; key replacement destroys the existing key and creates new key material. Omitting it for a key that never had a policy leaves that key unchanged.
+  - `json` - The release policy as JSON text; use `jsonencode` to construct it.
+  - `immutable` - Whether the policy is immutable. Defaults to `false`.
+- `rotation_policy` - The rotation policy of the key.
+  - `automatic` - The automatic rotation policy of the key.
+    - `time_after_creation` - The time after creation of the key before it is automatically rotated.
+    - `time_before_expiry` - The time before expiry of the key before it is automatically rotated.
+  - `expire_after` - The time after which the key expires.
+  - `notify_before_expiry` - The time before expiry of the key when notification emails will be sent.
+
+Supply role assignments in the same way as for `var.role_assignments`.
+DESCRIPTION
+  nullable    = false
+
+  validation {
+    error_message = "The `key_type` of each key must be one of `EC`, `EC-HSM`, `RSA`, or `RSA-HSM` (case-sensitive)."
+    condition     = alltrue([for key in var.keys : contains(["EC", "EC-HSM", "RSA", "RSA-HSM"], key.key_type)])
+  }
+  validation {
+    error_message = "HSM-backed keys (`EC-HSM` and `RSA-HSM`) require `var.sku_name` to be set to `premium`, or a Managed HSM."
+    condition     = var.sku_name == "premium" || !anytrue([for key in var.keys : endswith(key.key_type, "-HSM")])
+  }
+  validation {
+    error_message = "Keys with a release policy must have `key_type` set to `EC-HSM` or `RSA-HSM`."
+    condition     = alltrue([for key in var.keys : key.release_policy == null || contains(["EC-HSM", "RSA-HSM"], key.key_type)])
+  }
+}
+
+variable "legacy_access_policies" {
+  type = map(object({
+    object_id               = string
+    application_id          = optional(string, null)
+    certificate_permissions = optional(set(string), [])
+    key_permissions         = optional(set(string), [])
+    secret_permissions      = optional(set(string), [])
+    storage_permissions     = optional(set(string), [])
+  }))
+  default     = {}
+  description = <<DESCRIPTION
+A map of legacy access policies to create on the Key Vault. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
+
+Requires `var.legacy_access_policies_enabled` to be `true`.
+
+- `object_id` - (Required) The object ID of the principal to assign the access policy to.
+- `application_id` - (Optional) The object ID of an Application in Azure Active Directory. Changing this forces a new resource to be created.
+- `certifiate_permissions` - (Optional) A list of certificate permissions. Possible values are: `Backup`, `Create`, `Delete`, `DeleteIssuers`, `Get`, `GetIssuers`, `Import`, `List`, `ListIssuers`, `ManageContacts`, `ManageIssuers`, `Purge`, `Recover`, `Restore`, `SetIssuers`, and `Update`.
+- `key_permissions` - (Optional) A list of key permissions. Possible value are: `Backup`, `Create`, `Decrypt`, `Delete`, `Encrypt`, `Get`, `Import`, `List`, `Purge`, `Recover`, `Restore`, `Sign`, `UnwrapKey`, `Update`, `Verify`, `WrapKey`, `Release`, `Rotate`, `GetRotationPolicy`, and `SetRotationPolicy`.
+- `secret_permissions` - (Optional) A list of secret permissions. Possible values are: `Backup`, `Delete`, `Get`, `List`, `Purge`, `Recover`, `Restore`, and `Set`.
+- `storage_permissions` - (Optional) A list of storage permissions. Possible values are: `Backup`, `Delete`, `DeleteSAS`, `Get`, `GetSAS`, `List`, `ListSAS`, `Purge`, `Recover`, `RegenerateKey`, `Restore`, `Set`, `SetSAS`, and `Update`.
+DESCRIPTION
+  nullable    = false
+
+  validation {
+    error_message = "Object ID must be a valid GUID."
+    condition     = alltrue([for _, v in var.legacy_access_policies : can(regex("^[0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12}$", v.object_id))])
+  }
+  validation {
+    error_message = "Application ID must be null or a valid GUID."
+    condition     = alltrue([for _, v in var.legacy_access_policies : v.application_id == null || can(regex("^[0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12}$", v.application_id))])
+  }
+  validation {
+    error_message = "Certificate permissions must be a set composed of: `Backup`, `Create`, `Delete`, `DeleteIssuers`, `Get`, `GetIssuers`, `Import`, `List`, `ListIssuers`, `ManageContacts`, `ManageIssuers`, `Purge`, `Recover`, `Restore`, `SetIssuers`, and `Update`."
+    condition     = alltrue([for _, v in var.legacy_access_policies : setintersection(["Backup", "Create", "Delete", "DeleteIssuers", "Get", "GetIssuers", "Import", "List", "ListIssuers", "ManageContacts", "ManageIssuers", "Purge", "Recover", "Restore", "SetIssuers", "Update"], v.certificate_permissions) == v.certificate_permissions])
+  }
+  validation {
+    error_message = "Key permissions must be a set composed of: `Backup`, `Create`, `Decrypt`, `Delete`, `Encrypt`, `Get`, `Import`, `List`, `Purge`, `Recover`, `Restore`, `Sign`, `UnwrapKey`, `Update`, `Verify`, `WrapKey`, `Release`, `Rotate`, `GetRotationPolicy`, and `SetRotationPolicy`."
+    condition     = alltrue([for _, v in var.legacy_access_policies : setintersection(["Backup", "Create", "Decrypt", "Delete", "Encrypt", "Get", "Import", "List", "Purge", "Recover", "Restore", "Sign", "UnwrapKey", "Update", "Verify", "WrapKey", "Release", "Rotate", "GetRotationPolicy", "SetRotationPolicy"], v.key_permissions) == v.key_permissions])
+  }
+  validation {
+    error_message = "Secret permissions must be a set composed of: `Backup`, `Delete`, `Get`, `List`, `Purge`, `Recover`, `Restore`, and `Set`."
+    condition     = alltrue([for _, v in var.legacy_access_policies : setintersection(["Backup", "Delete", "Get", "List", "Purge", "Recover", "Restore", "Set"], v.secret_permissions) == v.secret_permissions])
+  }
+  validation {
+    error_message = "Storage permissions must be a set composed of: `Backup`, `Delete`, `DeleteSAS`, `Get`, `GetSAS`, `List`, `ListSAS`, `Purge`, `Recover`, `RegenerateKey`, `Restore`, `Set`, `SetSAS`, and `Update`."
+    condition     = alltrue([for _, v in var.legacy_access_policies : setintersection(["Backup", "Delete", "DeleteSAS", "Get", "GetSAS", "List", "ListSAS", "Purge", "Recover", "RegenerateKey", "Restore", "Set", "SetSAS", "Update"], v.storage_permissions) == v.storage_permissions])
+  }
+  validation {
+    error_message = "At least one permission must be set."
+    condition     = alltrue([for _, v in var.legacy_access_policies : length(v.certificate_permissions) + length(v.key_permissions) + length(v.secret_permissions) + length(v.storage_permissions) > 0])
+  }
+}
+
+variable "legacy_access_policies_enabled" {
+  type        = bool
+  default     = false
+  description = "Specifies whether legacy access policies are enabled for this Key Vault. Prevents use of Azure RBAC for data plane."
+  nullable    = false
+}
+
+variable "lock" {
+  type = object({
+    kind = string
+    name = optional(string, null)
+  })
+  default     = null
+  description = <<DESCRIPTION
+Controls the Resource Lock configuration for the Key Vault. Omit it, or set it to `null`, to create no lock.
+
+- `kind` - (Required) The type of lock. Possible values are `CanNotDelete` and `ReadOnly`.
+- `name` - (Optional) The name of the lock. One is generated from the Key Vault name if not set. Changing this forces the creation of a new resource.
+DESCRIPTION
+
+  validation {
+    condition     = var.lock != null ? contains(["CanNotDelete", "ReadOnly"], var.lock.kind) : true
+    error_message = "Lock kind must be either `\"CanNotDelete\"` or `\"ReadOnly\"`."
+  }
+}
+
+variable "network_acls" {
+  type = object({
+    bypass                     = optional(string, "None")
+    default_action             = optional(string, "Deny")
+    ip_rules                   = optional(list(string), [])
+    virtual_network_subnet_ids = optional(list(string), [])
+  })
+  default     = {}
+  description = <<DESCRIPTION
+The network ACL configuration for the Key Vault.
+If not specified then the Key Vault will be created with a firewall that blocks access.
+Specify `null` to create the Key Vault with no firewall.
+
+- `bypass` - (Optional) Should Azure Services bypass the ACL. Possible values are `AzureServices` and `None`. Defaults to `None`.
+- `default_action` - (Optional) The default action when no rule matches. Possible values are `Allow` and `Deny`. Defaults to `Deny`.
+- `ip_rules` - (Optional) A list of IP rules in CIDR format. Defaults to `[]`.
+- `virtual_network_subnet_ids` - (Optional) When using with Service Endpoints, a list of subnet IDs to associate with the Key Vault. Defaults to `[]`.
+DESCRIPTION
+
+  validation {
+    condition     = var.network_acls == null ? true : contains(["AzureServices", "None"], var.network_acls.bypass)
+    error_message = "The bypass value must be either `AzureServices` or `None`."
+  }
+  validation {
+    condition     = var.network_acls == null ? true : contains(["Allow", "Deny"], var.network_acls.default_action)
+    error_message = "The default_action value must be either `Allow` or `Deny`."
+  }
+}
+
+variable "private_endpoints" {
+  type = map(object({
+    name = optional(string, null)
+    role_assignments = optional(map(object({
+      name                                   = optional(string, null)
+      role_definition_id_or_name             = string
+      principal_id                           = string
+      description                            = optional(string, null)
+      skip_service_principal_aad_check       = optional(bool, false)
+      condition                              = optional(string, null)
+      condition_version                      = optional(string, null)
+      delegated_managed_identity_resource_id = optional(string, null)
+      principal_type                         = optional(string, null)
+    })), {})
+    lock = optional(object({
+      kind  = string
+      name  = optional(string, null)
+      notes = optional(string, null)
+    }), null)
+    tags                                    = optional(map(string), null)
+    subnet_resource_id                      = string
+    subresource_name                        = optional(string, null)
+    private_dns_zone_group_name             = optional(string, "default")
+    private_dns_zone_resource_ids           = optional(set(string), [])
+    application_security_group_associations = optional(map(string), {})
+    private_service_connection_name         = optional(string, null)
+    network_interface_name                  = optional(string, null)
+    location                                = optional(string, null)
+    resource_group_name                     = optional(string, null)
+    ip_configurations = optional(map(object({
+      name               = string
+      private_ip_address = string
+      member_name        = optional(string)
+    })), {})
+  }))
+  default     = {}
+  description = <<DESCRIPTION
+A map of private endpoints to create on the Key Vault. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
+
+- `name` - (Optional) The name of the private endpoint. One will be generated if not set.
+- `role_assignments` - (Optional) Currently ignored; this module does not create role assignments on private endpoints. Assign roles on the private endpoint outside this module.
+  - `name` - (Optional) The name of the role assignment. If not set, a random UUID will be generated. Changing this forces the creation of a new resource.
+  - `role_definition_id_or_name` - The ID or name of the role definition to assign to the principal.
+  - `principal_id` - The ID of the principal to assign the role to.
+  - `description` - (Optional) The description of the role assignment.
+  - `skip_service_principal_aad_check` - (Optional) If set to true, skips the Azure Active Directory check for the service principal in the tenant. Defaults to false.
+  - `condition` - (Optional) The condition which will be used to scope the role assignment.
+  - `condition_version` - (Optional) The version of the condition syntax. Leave as `null` if you are not using a condition, if you are then valid values are '2.0'.
+  - `delegated_managed_identity_resource_id` - (Optional) The delegated Azure Resource Id which contains a Managed Identity. Changing this forces a new resource to be created. This field is only used in cross-tenant scenario.
+  - `principal_type` - (Optional) The type of the `principal_id`. Possible values are `User`, `Group` and `ServicePrincipal`. It is necessary to explicitly set this attribute when creating role assignments if the principal creating the assignment is constrained by ABAC rules that filters on the PrincipalType attribute.
+- `lock` - (Optional) The lock to apply to the private endpoint. Omit it, or set it to `null`, to create no lock.
+  - `kind` - (Required) The type of lock. Possible values are `CanNotDelete` and `ReadOnly`.
+  - `name` - (Optional) The name of the lock. One is generated from the private endpoint name if not set. Changing this forces the creation of a new resource.
+  - `notes` - (Optional) Notes about the lock. This value maps to `Microsoft.Authorization/locks.properties.notes`.
+- `tags` - (Optional) A mapping of tags to assign to the private endpoint.
+- `subnet_resource_id` - The resource ID of the subnet to deploy the private endpoint in.
+- `subresource_name` - (Optional) The private link sub-resource name. Defaults to `vault`, the only Key Vault private link sub-resource.
+- `private_dns_zone_group_name` - (Optional) The name of the private DNS zone group. One will be generated if not set.
+- `private_dns_zone_resource_ids` - (Optional) A set of resource IDs of private DNS zones to associate with the private endpoint. If not set, no zone groups will be created and the private endpoint will not be associated with any private DNS zones. DNS records must be managed external to this module.
+- `application_security_group_associations` - (Optional) A map of resource IDs of application security groups to associate with the private endpoint. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
+- `private_service_connection_name` - (Optional) The name of the private service connection. One will be generated if not set.
+- `network_interface_name` - (Optional) The name of the network interface. One will be generated if not set.
+- `location` - (Optional) The Azure location where the resources will be deployed. Defaults to the location of the resource group.
+- `resource_group_name` - (Optional) The name of the resource group where the private endpoint resources will be deployed. Defaults to the Key Vault's resource group.
+- `ip_configurations` - (Optional) A map of IP configurations to create on the private endpoint. If not specified the platform will create one. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
+  - `name` - The name of the IP configuration.
+  - `private_ip_address` - The private IP address of the IP configuration.
+  - `member_name` - (Optional) The private IP configuration member name.
+DESCRIPTION
+  nullable    = false
+
+  validation {
+    condition = alltrue([
+      for _, v in var.private_endpoints :
+      can(provider::azapi::parse_resource_id("Microsoft.Network/virtualNetworks/subnets", v.subnet_resource_id))
+    ])
+    error_message = "Each `private_endpoints[*].subnet_resource_id` must be a valid subnet resource ID."
+  }
+  validation {
+    condition = alltrue(flatten([
+      for _, v in var.private_endpoints : [
+        for id in v.private_dns_zone_resource_ids :
+        can(provider::azapi::parse_resource_id("Microsoft.Network/privateDnsZones", id))
+      ]
+    ]))
+    error_message = "Each entry in `private_endpoints[*].private_dns_zone_resource_ids` must be a valid private DNS zone resource ID."
+  }
+  validation {
+    condition = alltrue(flatten([
+      for _, v in var.private_endpoints : [
+        for _, asg in v.application_security_group_associations :
+        can(provider::azapi::parse_resource_id("Microsoft.Network/applicationSecurityGroups", asg))
+      ]
+    ]))
+    error_message = "Each value in `private_endpoints[*].application_security_group_associations` must be a valid application security group resource ID."
+  }
+  validation {
+    condition = alltrue(flatten([
+      for _, v in var.private_endpoints : [
+        for _, ra in v.role_assignments :
+        ra.delegated_managed_identity_resource_id == null || can(provider::azapi::parse_resource_id("Microsoft.ManagedIdentity/userAssignedIdentities", ra.delegated_managed_identity_resource_id))
+      ]
+    ]))
+    error_message = "Each `private_endpoints[*].role_assignments[*].delegated_managed_identity_resource_id` must be a valid user-assigned managed identity resource ID, or null."
+  }
+  validation {
+    condition     = alltrue([for _, v in var.private_endpoints : v.lock == null ? true : contains(["CanNotDelete", "ReadOnly"], v.lock.kind)])
+    error_message = "Lock kind must be either `\"CanNotDelete\"` or `\"ReadOnly\"`."
+  }
+}
+
+variable "private_endpoints_manage_dns_zone_group" {
+  type        = bool
+  default     = true
+  description = "Whether to manage private DNS zone groups with this module. If set to false, you must manage private DNS zone groups externally, e.g. using Azure Policy."
+  nullable    = false
+}
+
+variable "public_network_access_enabled" {
+  type        = bool
+  default     = true
+  description = "Specifies whether public access is permitted."
+}
+
+variable "purge_protection_enabled" {
+  type        = bool
+  default     = true
+  description = "Specifies whether protection against purge is enabled for this Key Vault. Note once enabled this cannot be disabled."
+}
+
+variable "resource_types" {
+  type = object({
+    authorization_locks                               = optional(string, "Microsoft.Authorization/locks@2020-05-01")
+    authorization_role_assignments                    = optional(string, "Microsoft.Authorization/roleAssignments@2022-04-01")
+    insights_diagnostic_settings                      = optional(string, "Microsoft.Insights/diagnosticSettings@2021-05-01-preview")
+    keyvault_vaults                                   = optional(string, "Microsoft.KeyVault/vaults@2026-02-01")
+    network_private_endpoints                         = optional(string, "Microsoft.Network/privateEndpoints@2025-05-01")
+    network_private_endpoints_private_dns_zone_groups = optional(string, "Microsoft.Network/privateEndpoints/privateDnsZoneGroups@2025-05-01")
+  })
+  default     = {}
+  description = <<DESCRIPTION
+AzAPI resource types and API versions used by the module, in `<provider>/<resource>@<api-version>` form. Each key defaults to a tested value; supply only the keys you want to override, for example to target a sovereign cloud that serves older API versions.
+
+- `authorization_locks` - The management locks on the key vault and the private endpoints.
+- `authorization_role_assignments` - The role assignments.
+- `insights_diagnostic_settings` - The diagnostic settings. The default is a preview version because the stable version does not support log category groups.
+- `keyvault_vaults` - The key vault.
+- `network_private_endpoints` - The private endpoints.
+- `network_private_endpoints_private_dns_zone_groups` - The private DNS zone groups of the private endpoints.
+DESCRIPTION
+  nullable    = false
+}
+
+variable "retry" {
+  type = object({
+    error_message_regex  = optional(list(string))
+    interval_seconds     = optional(number)
+    max_interval_seconds = optional(number)
+  })
+  default     = null
+  description = <<DESCRIPTION
+Retry configuration applied to every `azapi` resource managed by the module. Defaults to `null` (no custom retry).
+
+- `error_message_regex`  - (Optional) A list of regex patterns matching error messages that trigger a retry.
+- `interval_seconds`     - (Optional) Initial interval between retries in seconds.
+- `max_interval_seconds` - (Optional) Maximum interval between retries in seconds.
+
+See <https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource#retry> for full semantics.
+DESCRIPTION
+}
+
+variable "role_assignments" {
+  type = map(object({
+    role_definition_id_or_name             = string
+    principal_id                           = string
+    description                            = optional(string, null)
+    skip_service_principal_aad_check       = optional(bool, false)
+    condition                              = optional(string, null)
+    condition_version                      = optional(string, null)
+    delegated_managed_identity_resource_id = optional(string, null)
+    principal_type                         = optional(string, null)
+  }))
+  default     = {}
+  description = <<DESCRIPTION
+A map of role assignments to create on the Key Vault. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
+
+- `role_definition_id_or_name` - The ID or name of the role definition to assign to the principal.
+- `principal_id` - The ID of the principal to assign the role to.
+- `description` - The description of the role assignment.
+- `skip_service_principal_aad_check` - If set to true, skips the Azure Active Directory check for the service principal in the tenant. Defaults to false.
+- `condition` - The condition which will be used to scope the role assignment.
+- `condition_version` - The version of the condition syntax. If you are using a condition, valid values are '2.0'.
+
+> Note: only set `skip_service_principal_aad_check` to true if you are assigning a role to a service principal.
+DESCRIPTION
+  nullable    = false
+}
+
+variable "secrets" {
+  type = map(object({
+    name            = string
+    content_type    = optional(string, null)
+    tags            = optional(map(any), null)
+    not_before_date = optional(string, null)
+    expiration_date = optional(string, null)
+
+    role_assignments = optional(map(object({
+      role_definition_id_or_name             = string
+      principal_id                           = string
+      description                            = optional(string, null)
+      skip_service_principal_aad_check       = optional(bool, false)
+      condition                              = optional(string, null)
+      condition_version                      = optional(string, null)
+      delegated_managed_identity_resource_id = optional(string, null)
+      principal_type                         = optional(string, null)
+    })), {})
+  }))
+  default     = {}
+  description = <<DESCRIPTION
+A map of secrets to create on the Key Vault. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
+
+- `name` - The name of the secret.
+- `content_type` - The content type of the secret.
+- `tags` - A mapping of tags to assign to the secret.
+- `not_before_date` - The not before date of the secret.
+- `expiration_date` - The expiration date of the secret.
+
+Supply role assignments in the same way as for `var.role_assignments`.
+
+> Note: the `value` of the secret is supplied via the `var.secrets_value` variable, or via `var.secrets_value_wo` and `var.secrets_value_wo_version` for a write-only value. Make sure to use the same map key.
+DESCRIPTION
+  nullable    = false
+}
+
+variable "secrets_value" {
+  type        = map(string)
+  default     = {}
+  description = <<DESCRIPTION
+A map of secret keys to values.
+The map key is the supplied input to `var.secrets`.
+The map value is the secret value.
+
+This is a separate variable to `var.secrets` because it is sensitive and therefore cannot be used in a `for_each` loop.
+DESCRIPTION
+  sensitive   = true
+}
+
+variable "secrets_value_wo" {
+  type        = map(string)
+  default     = null
+  description = <<DESCRIPTION
+A map of secret keys to writable-only secret values.
+The map key is the supplied input to `var.secrets`.
+The map value is the writable-only secret value for that key.
+
+Use `var.secrets_value_wo_version` with the same key to control updates when the writable-only value changes.
+DESCRIPTION
+  sensitive   = true
+  ephemeral   = true
+}
+
+variable "secrets_value_wo_version" {
+  type        = map(number)
+  default     = null
+  description = <<DESCRIPTION
+A map of secret keys to writable-only secret value versions.
+The map key is the supplied input to `var.secrets`.
+The map value is the version identifier for that secret value.
+
+Use the same key as `var.secrets_value_wo`; increment the version when the corresponding writable-only value changes to trigger a secret update.
+DESCRIPTION
+}
+
+variable "sku_name" {
+  type        = string
+  default     = "premium"
+  description = "The SKU name of the Key Vault. Default is `premium`. Possible values are `standard` and `premium`."
+
+  validation {
+    condition     = contains(["standard", "premium"], var.sku_name)
+    error_message = "The SKU name must be either `standard` or `premium`."
+  }
+}
+
+variable "soft_delete_retention_days" {
+  type        = number
+  default     = null
+  description = <<DESCRIPTION
+The number of days that items should be retained for once soft-deleted. This value can be between 7 and 90 (the default) days.
+DESCRIPTION
+
+  validation {
+    condition     = var.soft_delete_retention_days == null ? true : var.soft_delete_retention_days >= 7 && var.soft_delete_retention_days <= 90
+    error_message = "Value must be between 7 and 90."
+  }
+  validation {
+    condition     = var.soft_delete_retention_days == null ? true : ceil(var.soft_delete_retention_days) == var.soft_delete_retention_days
+    error_message = "Value must be an integer."
+  }
+}
+
+variable "tags" {
+  type        = map(string)
+  default     = null
+  description = "Map of tags to assign to the Key Vault resource."
+}
+
+variable "timeouts" {
+  type = object({
+    create = optional(string)
+    read   = optional(string)
+    update = optional(string)
+    delete = optional(string)
+  })
+  default     = null
+  description = <<DESCRIPTION
+Default per-operation timeouts applied to every `azapi` resource managed by the module. Defaults to `null` (provider defaults). Each value is a Go duration string (e.g. `30m`, `1h`).
+
+- `create` - (Optional) Timeout for create operations.
+- `read`   - (Optional) Timeout for read operations.
+- `update` - (Optional) Timeout for update operations.
+- `delete` - (Optional) Timeout for delete operations.
+DESCRIPTION
+}
+
+variable "wait_for_rbac_before_contact_operations" {
+  type = object({
+    create  = optional(string, "30s")
+    destroy = optional(string, "0s")
+  })
+  default     = {}
+  description = <<DESCRIPTION
+This variable controls the amount of time to wait before performing contact operations.
+It only applies when `var.role_assignments` and `var.contacts` are both set.
+This is useful when you are creating role assignments on the key vault and immediately creating keys in it.
+The default is 30 seconds for create and 0 seconds for destroy.
+DESCRIPTION
+}
+
+variable "wait_for_rbac_before_key_operations" {
+  type = object({
+    create  = optional(string, "30s")
+    destroy = optional(string, "0s")
+  })
+  default     = {}
+  description = <<DESCRIPTION
+This variable controls the amount of time to wait before performing key operations.
+It only applies when `var.role_assignments` and `var.keys` are both set.
+This is useful when you are creating role assignments on the key vault and immediately creating keys in it.
+The default is 30 seconds for create and 0 seconds for destroy.
+DESCRIPTION
+}
+
+variable "wait_for_rbac_before_secret_operations" {
+  type = object({
+    create  = optional(string, "30s")
+    destroy = optional(string, "0s")
+  })
+  default     = {}
+  description = <<DESCRIPTION
+This variable controls the amount of time to wait before performing secret operations.
+It only applies when `var.role_assignments` and `var.secrets` are both set.
+This is useful when you are creating role assignments on the key vault and immediately creating secrets in it.
+The default is 30 seconds for create and 0 seconds for destroy.
+DESCRIPTION
+  nullable    = false
+}

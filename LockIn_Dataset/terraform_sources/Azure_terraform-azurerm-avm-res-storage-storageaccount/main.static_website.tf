@@ -1,0 +1,20 @@
+# Static website is per-account, but the input is a map for backwards
+# compatibility. We pick the first (and only) entry if the map is non-empty.
+module "static_website" {
+  source   = "./modules/static_website"
+  for_each = var.static_website == null ? {} : var.static_website
+
+  location           = var.location
+  storage_account_id = azapi_resource.this.id
+  enable_telemetry   = var.enable_telemetry
+  error_404_document = each.value.error_404_document
+  index_document     = each.value.index_document
+  resource_type      = var.resource_types.static_website
+  retry              = var.retry
+  timeouts           = var.timeouts
+
+  # This submodule and blob_service patch the same blobServices/default object, and
+  # azapi_update_resource is GET + client-side merge + PUT, so concurrent writes
+  # would each overwrite the other's fields. Keep this ordering.
+  depends_on = [module.blob_service]
+}

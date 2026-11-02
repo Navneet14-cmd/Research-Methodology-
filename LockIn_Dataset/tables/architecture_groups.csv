@@ -1,0 +1,6 @@
+group,configs,median,mean
+K8s-centric,47,24.17,25.28
+IaaS/other,457,27.1,31.46
+Managed-PaaS-centric,173,41.86,40.78
+
+Mann-Whitney K8s vs PaaS,U=510.5,z=-9.19,p=4.05e-20,cliffs_delta=-0.874

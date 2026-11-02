@@ -1,0 +1,37 @@
+module "secrets" {
+  source   = "./modules/secret"
+  for_each = var.secrets
+
+  key_vault_resource_id = azapi_resource.this.id
+  name                  = each.value.name
+  content_type          = each.value.content_type
+  expiration_date       = each.value.expiration_date
+  not_before_date       = each.value.not_before_date
+  role_assignments      = each.value.role_assignments
+  tags                  = each.value.tags
+  value                 = try(var.secrets_value[each.key], null)
+  value_wo              = try(var.secrets_value_wo[each.key], null)
+  value_wo_version      = try(var.secrets_value_wo_version[each.key], null)
+
+  # Secrets are created through the private endpoints once their DNS records exist.
+  depends_on = [
+    azapi_resource.private_dns_zone_groups,
+    azapi_resource.private_endpoints,
+    azapi_resource.private_endpoints_unmanaged_dns_zone_groups,
+    time_sleep.wait_for_rbac_before_secret_operations
+  ]
+}
+
+resource "time_sleep" "wait_for_rbac_before_secret_operations" {
+  count = length(var.role_assignments) != 0 && length(var.secrets) != 0 ? 1 : 0
+
+  create_duration  = var.wait_for_rbac_before_secret_operations.create
+  destroy_duration = var.wait_for_rbac_before_secret_operations.destroy
+  triggers = {
+    role_assignments = jsonencode(var.role_assignments)
+  }
+
+  depends_on = [
+    azapi_resource.role_assignments
+  ]
+}

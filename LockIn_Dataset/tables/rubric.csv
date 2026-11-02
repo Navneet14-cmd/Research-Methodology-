@@ -1,0 +1,24 @@
+category,A_api_proprietariness,D_data_state_lock,E_equivalence_gap,X_egress_exposure,resource_lii
+Proprietary NoSQL,0.9,0.8,0.7,0.8,81.0
+Analytics/AI,0.9,0.7,0.6,0.9,77.5
+API/workflow,0.9,0.2,0.6,0.0,51.5
+Raw ARM API (azapi),0.9,0.2,0.5,0.1,50.5
+Messaging/eventing,0.8,0.3,0.4,0.2,48.5
+IAM/identity,0.9,0.0,0.5,0.0,44.0
+Serverless functions,0.8,0.1,0.4,0.0,40.5
+Observability,0.7,0.2,0.3,0.1,38.5
+Governance/org,0.8,0.0,0.4,0.0,38.0
+Other provider,0.6,0.2,0.4,0.1,37.5
+Proprietary containers,0.7,0.1,0.4,0.0,37.0
+Secrets/KMS,0.6,0.3,0.3,0.0,36.0
+Object storage,0.3,0.3,0.1,0.9,34.0
+Relational DB,0.3,0.4,0.1,0.7,33.5
+Block storage,0.2,0.4,0.1,0.5,27.0
+Edge (LB/DNS/CDN),0.5,0.0,0.3,0.1,26.5
+Compute (VM),0.3,0.2,0.1,0.2,21.0
+Network core,0.4,0.0,0.2,0.0,19.0
+Container registry,0.2,0.2,0.1,0.3,19.0
+Managed Kubernetes,0.3,0.1,0.1,0.1,17.0
+Kubernetes-native,0.1,0.1,0.0,0.0,6.0
+
+"weights (A,D,E,X)",0.35,0.25,0.25,0.15

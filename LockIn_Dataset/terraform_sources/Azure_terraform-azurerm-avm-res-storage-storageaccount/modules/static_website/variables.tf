@@ -1,0 +1,92 @@
+variable "location" {
+  type        = string
+  description = "The Azure region for this module's resources or telemetry deployment."
+  nullable    = false
+}
+
+variable "storage_account_id" {
+  type        = string
+  description = "(Required) The full resource ID of the parent storage account."
+  nullable    = false
+}
+
+variable "enable_telemetry" {
+  type        = bool
+  default     = true
+  description = <<DESCRIPTION
+This variable controls whether or not telemetry is enabled for the module.
+For more information see <https://aka.ms/avm/telemetryinfo>.
+If it is set to false, then no telemetry will be collected.
+DESCRIPTION
+  nullable    = false
+}
+
+variable "error_404_document" {
+  type        = string
+  default     = null
+  description = "(Optional) The absolute path to a custom webpage to use for 404 not-found errors. Defaults to `null` (Azure Storage returns the default error page)."
+}
+
+variable "index_document" {
+  type        = string
+  default     = null
+  description = "(Optional) The webpage that Azure Storage serves for requests to the root of a website or any subfolder. Defaults to `null` (no index document configured)."
+}
+
+variable "resource_type" {
+  type = string
+  # `properties.staticWebsite` was added to the blob service schema in the
+  # 2025-08-01 API version. Earlier versions silently drop the property, so the
+  # PATCH succeeds while the static website stays disabled.
+  default     = "Microsoft.Storage/storageAccounts/blobServices@2025-08-01"
+  description = "(Optional) Override the AzAPI `<provider>/<resource>@<api-version>` string used to patch the blob service for static-website hosting. Defaults to the value tested with this module version. Must be `2025-08-01` or later; earlier API versions do not include `properties.staticWebsite` and will silently discard the configuration."
+  nullable    = false
+
+  validation {
+    condition = try(
+      tonumber(replace(regex("^\\d{4}-\\d{2}-\\d{2}", split("@", var.resource_type)[1]), "-", "")) >= 20250801,
+      false
+    )
+    error_message = "resource_type must use API version 2025-08-01 or later. Earlier versions omit `properties.staticWebsite` from the blob service schema, so the request succeeds but static website hosting is never enabled."
+  }
+}
+
+variable "retry" {
+  type = object({
+    error_message_regex  = optional(list(string))
+    interval_seconds     = optional(number)
+    max_interval_seconds = optional(number)
+  })
+  default     = null
+  description = <<-EOT
+(Optional) Retry configuration applied to the AzAPI resource. Defaults to `null` (no custom retry).
+
+- `error_message_regex` - (Optional) A list of regex patterns matching error messages that trigger a retry. Defaults to `null`.
+- `interval_seconds` - (Optional) Initial interval between retries in seconds. Defaults to `null` (provider default).
+- `max_interval_seconds` - (Optional) Maximum interval between retries in seconds. Defaults to `null` (provider default).
+EOT
+}
+
+variable "timeouts" {
+  type = object({
+    create = optional(string)
+    read   = optional(string)
+    update = optional(string)
+    delete = optional(string)
+  })
+  default     = null
+  description = <<-EOT
+(Optional) Per-operation timeouts applied to the AzAPI resource. Defaults to `null` (provider defaults). Each value is a Go duration string (e.g. `30m`, `1h`).
+
+- `create` - (Optional) Timeout for create operations. Defaults to `null`.
+- `read` - (Optional) Timeout for read operations. Defaults to `null`.
+- `update` - (Optional) Timeout for update operations. Defaults to `null`.
+- `delete` - (Optional) Timeout for delete operations. Defaults to `null`.
+EOT
+}
+
+variable "tracing_tags_header" {
+  type        = string
+  default     = null
+  description = "(Optional) User-Agent string injected into AzAPI read and update request headers. Defaults to `null` (no custom header)."
+}

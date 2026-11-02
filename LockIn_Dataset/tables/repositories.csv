@@ -1,0 +1,29 @@
+repository,url,commit_sha,license,configs_included,status
+Azure/terraform-azurerm-aks,https://github.com/Azure/terraform-azurerm-aks,58ffc7c71a36871dc955ded13816fd29ac798791,MIT,9,included
+Azure/terraform-azurerm-avm-res-keyvault-vault,https://github.com/Azure/terraform-azurerm-avm-res-keyvault-vault,65a67d849089550af55b4b30b6c5eade2a54be3b,MIT,6,included
+Azure/terraform-azurerm-avm-res-storage-storageaccount,https://github.com/Azure/terraform-azurerm-avm-res-storage-storageaccount,ee2ae8627389225c65e802defcb93645e33f0b18,MIT,15,included
+Azure/terraform-azurerm-caf-enterprise-scale,https://github.com/Azure/terraform-azurerm-caf-enterprise-scale,651a585c7fc113315477b957bbd9e8d09e4ff60f,MIT,4,included
+GoogleCloudPlatform/cloud-foundation-fabric,https://github.com/GoogleCloudPlatform/cloud-foundation-fabric,bb5c85120a153982ea0ccb6e909c8985f233135f,Apache-2.0,6,included
+aws-ia/terraform-aws-eks-blueprints,https://github.com/aws-ia/terraform-aws-eks-blueprints,fc40e64615785b3dc4db88e57c45a6687ca026b5,Apache-2.0,0,no qualifying configuration (uses registry modules)
+aws-samples/serverless-patterns,https://github.com/aws-samples/serverless-patterns,0cd7bd6194350668c55d5aab976f951d4f1b5100,MIT-0,90,included
+aztfmod/terraform-azurerm-caf,https://github.com/aztfmod/terraform-azurerm-caf,e09d494a521cb23e30ff7af6ceff2c06b043bab7,MIT,0,excluded: tfvars-driven framework
+hashicorp/learn-terraform-provision-aks-cluster,https://github.com/hashicorp/learn-terraform-provision-aks-cluster,0c1c754425da638ac53173b3a45730a5529bcefa,MPL-2.0,0,no qualifying configuration (uses registry modules)
+hashicorp/learn-terraform-provision-eks-cluster,https://github.com/hashicorp/learn-terraform-provision-eks-cluster,20816e4bcc757a242ba9be7544401a22b45b055e,MPL-2.0,0,no qualifying configuration (uses registry modules)
+hashicorp/learn-terraform-provision-gke-cluster,https://github.com/hashicorp/learn-terraform-provision-gke-cluster,dab7ea069e49cbe68c1d2523b1b92c965fbb3546,MPL-2.0,1,included
+hashicorp/terraform-provider-aws,https://github.com/hashicorp/terraform-provider-aws,adc4df491d95231a2fe1f30656105aff9dbf4377,MPL-2.0,33,included
+hashicorp/terraform-provider-azurerm,https://github.com/hashicorp/terraform-provider-azurerm,c9c133f9a80b5efe1187d2ebc237a2d09dce784a,MPL-2.0,214,included
+terraform-aws-modules/terraform-aws-apigateway-v2,https://github.com/terraform-aws-modules/terraform-aws-apigateway-v2,95e6a1d56d6d761ec12c89b36b29aad03a421b2f,Apache-2.0,3,included
+terraform-aws-modules/terraform-aws-dynamodb-table,https://github.com/terraform-aws-modules/terraform-aws-dynamodb-table,b6cc515760466a455ff0acb97b16151fdca4511e,Apache-2.0,4,included
+terraform-aws-modules/terraform-aws-ecs,https://github.com/terraform-aws-modules/terraform-aws-ecs,135c225c75c7f0044966329c55ad8d647b358a57,Apache-2.0,5,included
+terraform-aws-modules/terraform-aws-eks,https://github.com/terraform-aws-modules/terraform-aws-eks,91b8a8d944e3cf169483108acd12d5b1e47856f7,Apache-2.0,4,included
+terraform-aws-modules/terraform-aws-lambda,https://github.com/terraform-aws-modules/terraform-aws-lambda,851d20939b25ee7ebadba96a3eab31ff6450134d,Apache-2.0,16,included
+terraform-aws-modules/terraform-aws-rds,https://github.com/terraform-aws-modules/terraform-aws-rds,175da043429cbbe41c512f976105719f6d0e538c,Apache-2.0,12,included
+terraform-aws-modules/terraform-aws-s3-bucket,https://github.com/terraform-aws-modules/terraform-aws-s3-bucket,9afa4fc8c8f1e0b3fd913474c1bef8d0c454b235,Apache-2.0,11,included
+terraform-aws-modules/terraform-aws-vpc,https://github.com/terraform-aws-modules/terraform-aws-vpc,b3abd6df2ecf052451a361ed55b8f06f8742a795,Apache-2.0,13,included
+terraform-google-modules/terraform-docs-samples,https://github.com/terraform-google-modules/terraform-docs-samples,fbf08aa52ee5a2ff5510b2791ae77230ae1a7a85,Apache-2.0,204,included
+terraform-google-modules/terraform-google-cloud-storage,https://github.com/terraform-google-modules/terraform-google-cloud-storage,c7effc0be0f4de78ae45d8d9d426f8478cc397ca,Apache-2.0,0,no qualifying configuration (uses registry modules)
+terraform-google-modules/terraform-google-event-function,https://github.com/terraform-google-modules/terraform-google-event-function,9f2e26ae3b730697030ba41d926e442af90ba46d,Apache-2.0,1,included
+terraform-google-modules/terraform-google-kubernetes-engine,https://github.com/terraform-google-modules/terraform-google-kubernetes-engine,07ae4c05e784e10f4c266cdc9044621b2f2215f2,Apache-2.0,8,included
+terraform-google-modules/terraform-google-network,https://github.com/terraform-google-modules/terraform-google-network,91352bed3014ddbfb323d979b6413a90e7253acf,Apache-2.0,15,included
+terraform-google-modules/terraform-google-pubsub,https://github.com/terraform-google-modules/terraform-google-pubsub,6cf1860af9c1ccd7228f0ac5e75b4c6755f75d17,Apache-2.0,1,included
+terraform-google-modules/terraform-google-sql-db,https://github.com/terraform-google-modules/terraform-google-sql-db,5178f8274e8c58965af7ee4508f4a64bbf9edc54,Apache-2.0,2,included
